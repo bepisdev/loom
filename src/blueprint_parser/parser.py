@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import yaml
 from jinja2 import Environment, StrictUndefined, TemplateError
