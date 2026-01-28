@@ -3,10 +3,10 @@
 import click
 
 from blueprint_parser.parser import BlueprintParser
-
+from . import __version__
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="loom")
+@click.version_option(version=__version__, prog_name="loom")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """
