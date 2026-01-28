@@ -11,7 +11,7 @@ from blueprint_parser.parser import BlueprintParser
 def cli(ctx: click.Context) -> None:
     """
     Loom - A configuration management and provisioning tool.
-    
+
     Loom reads blueprint files and executes tasks to configure target systems.
     """
     ctx.ensure_object(dict)
@@ -41,36 +41,36 @@ def cli(ctx: click.Context) -> None:
 def run(blueprint: str, project_root: str, dry_run: bool, verbose: bool) -> None:
     """
     Parse and execute a blueprint file.
-    
+
     BLUEPRINT: Path to the blueprint YAML file to execute.
     """
     try:
         parser = BlueprintParser(project_root)
-        
+
         if verbose:
             click.echo(f"[*] Loading blueprint: {blueprint}")
-        
+
         execution_plan = parser.parse_blueprint(blueprint)
-        
+
         if verbose or dry_run:
             click.echo(f"\n[✓] Blueprint parsed successfully: {execution_plan['meta']['name']}")
             click.echo(f"    Target: {execution_plan['meta']['target']}")
             click.echo(f"    User: {execution_plan['meta']['user']}")
             click.echo(f"    Tasks: {len(execution_plan['tasks'])}")
-        
+
         if dry_run:
             click.echo("\n[*] Dry run mode - no tasks will be executed")
-            for idx, task in enumerate(execution_plan['tasks'], 1):
+            for idx, task in enumerate(execution_plan["tasks"], 1):
                 click.echo(f"\n  Task {idx}: {task['source_file']}")
-                if task['condition']:
+                if task["condition"]:
                     click.echo(f"    Condition: {task['condition']}")
                 click.echo(f"    Steps: {len(task['steps'])}")
-                for step_idx, step in enumerate(task['steps'], 1):
+                for step_idx, step in enumerate(task["steps"], 1):
                     click.echo(f"      {step_idx}. {step['name']} (uses: {step['uses']})")
         else:
             click.echo("\n[*] Execution not yet implemented")
             click.echo("    Use --dry-run to validate the blueprint")
-        
+
     except FileNotFoundError as e:
         click.echo(f"[✗] Error: {e}", err=True)
         raise click.Abort() from e
@@ -94,21 +94,21 @@ def run(blueprint: str, project_root: str, dry_run: bool, verbose: bool) -> None
 def validate(blueprint: str, project_root: str) -> None:
     """
     Validate a blueprint file without executing it.
-    
+
     BLUEPRINT: Path to the blueprint YAML file to validate.
     """
     try:
         parser = BlueprintParser(project_root)
         execution_plan = parser.parse_blueprint(blueprint)
-        
+
         click.echo(f"[✓] Blueprint is valid: {execution_plan['meta']['name']}")
         click.echo(f"    Target: {execution_plan['meta']['target']}")
         click.echo(f"    User: {execution_plan['meta']['user']}")
         click.echo(f"    Tasks: {len(execution_plan['tasks'])} task(s) found")
-        
-        for idx, task in enumerate(execution_plan['tasks'], 1):
+
+        for idx, task in enumerate(execution_plan["tasks"], 1):
             click.echo(f"      {idx}. {task['source_file']} ({len(task['steps'])} step(s))")
-        
+
     except FileNotFoundError as e:
         click.echo(f"[✗] Error: {e}", err=True)
         raise click.Abort() from e
@@ -132,12 +132,12 @@ def init() -> None:
     project_root = Path.cwd()
     tasks_dir = project_root / "tasks"
     blueprints_dir = project_root / "blueprints"
-    
+
     try:
         # Create directories
         tasks_dir.mkdir(exist_ok=True)
         blueprints_dir.mkdir(exist_ok=True)
-        
+
         # Create a sample blueprint
         sample_blueprint = blueprints_dir / "example.yaml"
         if not sample_blueprint.exists():
@@ -151,7 +151,7 @@ vars:
 run:
   - file: example_task.yaml
 """)
-        
+
         # Create a sample task
         sample_task = tasks_dir / "example_task.yaml"
         if not sample_task.exists():
@@ -162,7 +162,7 @@ run:
     with:
       cmd: echo "Hello from {{ vars.app_name }}"
 """)
-        
+
         click.echo("[✓] Loom project initialized successfully!")
         click.echo(f"    Created: {tasks_dir}")
         click.echo(f"    Created: {blueprints_dir}")
@@ -172,7 +172,7 @@ run:
         click.echo("  1. Edit the blueprint in blueprints/example.yaml")
         click.echo("  2. Run: loom validate blueprints/example.yaml")
         click.echo("  3. Run: loom run blueprints/example.yaml --dry-run")
-        
+
     except Exception as e:
         click.echo(f"[✗] Error initializing project: {e}", err=True)
         raise click.Abort() from e
