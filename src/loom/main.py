@@ -18,13 +18,13 @@ def cli(ctx: click.Context) -> None:
 
 
 @cli.command()
-@click.argument("blueprint", type=click.Path(exists=True))
+@click.argument("blueprint", type=click.Path(exists=True), required=False, default="main.yaml")
 @click.option(
     "--project-root",
     "-p",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     default=".",
-    help="Path to the project root directory containing blueprints and tasks.",
+    help="Path to the project root directory containing main.yaml and tasks.",
 )
 @click.option(
     "--dry-run",
@@ -42,7 +42,7 @@ def run(blueprint: str, project_root: str, dry_run: bool, verbose: bool) -> None
     """
     Parse and execute a blueprint file.
 
-    BLUEPRINT: Path to the blueprint YAML file to execute.
+    BLUEPRINT: Path to the blueprint YAML file to execute (default: main.yaml).
     """
     try:
         parser = BlueprintParser(project_root)
@@ -83,19 +83,19 @@ def run(blueprint: str, project_root: str, dry_run: bool, verbose: bool) -> None
 
 
 @cli.command()
-@click.argument("blueprint", type=click.Path(exists=True))
+@click.argument("blueprint", type=click.Path(exists=True), required=False, default="main.yaml")
 @click.option(
     "--project-root",
     "-p",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     default=".",
-    help="Path to the project root directory containing blueprints and tasks.",
+    help="Path to the project root directory containing main.yaml and tasks.",
 )
 def validate(blueprint: str, project_root: str) -> None:
     """
     Validate a blueprint file without executing it.
 
-    BLUEPRINT: Path to the blueprint YAML file to validate.
+    BLUEPRINT: Path to the blueprint YAML file to validate (default: main.yaml).
     """
     try:
         parser = BlueprintParser(project_root)
@@ -121,7 +121,7 @@ def validate(blueprint: str, project_root: str) -> None:
 
 
 @cli.command()
-@click.argument("name", required=False, default="example")
+@click.argument("name", required=False, default="My Project")
 @click.option(
     "--directory",
     "-d",
@@ -133,33 +133,28 @@ def init(name: str, directory: str) -> None:
     """
     Initialize a new loom project.
 
-    Creates the necessary directory structure for blueprints and tasks,
-    and generates a starter blueprint with the specified name.
+    Creates a main.yaml blueprint file and tasks directory structure.
 
-    NAME: Name for the blueprint (default: example). This will be used
-    for the blueprint filename and internal name.
+    NAME: Display name for the blueprint (default: "My Project").
     """
     from pathlib import Path
 
     project_root = Path(directory).resolve()
     tasks_dir = project_root / "tasks"
-    blueprints_dir = project_root / "blueprints"
 
-    # Sanitize the name for use as filename
+    # Sanitize the name for use as task filename prefix
     safe_name = name.lower().replace(" ", "_")
-    blueprint_filename = f"{safe_name}.yaml"
     task_filename = f"{safe_name}_task.yaml"
 
-    # Create a display name (capitalize words)
-    display_name = " ".join(word.capitalize() for word in name.replace("_", " ").split())
+    # Display name for the blueprint
+    display_name = name
 
     try:
-        # Create directories
+        # Create tasks directory
         tasks_dir.mkdir(parents=True, exist_ok=True)
-        blueprints_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create the blueprint
-        blueprint_path = blueprints_dir / blueprint_filename
+        # Create the main blueprint
+        blueprint_path = project_root / "main.yaml"
         if blueprint_path.exists():
             click.echo(f"[!] Warning: Blueprint already exists at {blueprint_path}")
             if not click.confirm("    Overwrite?"):
@@ -202,14 +197,13 @@ run:
 
         click.echo("[✓] Loom project initialized successfully!")
         click.echo(f"    Project root: {project_root}")
-        click.echo(f"    Tasks directory: {tasks_dir}")
-        click.echo(f"    Blueprints directory: {blueprints_dir}")
         click.echo(f"    Blueprint: {blueprint_path}")
-        click.echo(f"    Task: {task_path}")
+        click.echo(f"    Tasks directory: {tasks_dir}")
+        click.echo(f"    Example task: {task_path}")
         click.echo("\nNext steps:")
-        click.echo(f"  1. Edit the blueprint in blueprints/{blueprint_filename}")
-        click.echo(f"  2. Run: loom validate blueprints/{blueprint_filename}")
-        click.echo(f"  3. Run: loom run blueprints/{blueprint_filename} --dry-run")
+        click.echo("  1. Edit the blueprint in main.yaml")
+        click.echo("  2. Run: loom validate main.yaml")
+        click.echo("  3. Run: loom run main.yaml --dry-run")
 
     except Exception as e:
         click.echo(f"[✗] Error initializing project: {e}", err=True)

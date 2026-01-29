@@ -28,6 +28,24 @@ def test_init_command() -> None:
         result = runner.invoke(cli, ["init"])
         assert result.exit_code == 0
         assert "Loom project initialized successfully" in result.output
+        # Verify main.yaml and tasks directory are created
+        from pathlib import Path
+        assert Path("main.yaml").exists()
+        assert Path("tasks").exists()
+        assert Path("tasks").is_dir()
+
+
+def test_init_command_with_name() -> None:
+    """Test that init command accepts a custom project name."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, ["init", "Web Server"])
+        assert result.exit_code == 0
+        assert "Loom project initialized successfully" in result.output
+        # Verify main.yaml contains the custom name
+        from pathlib import Path
+        content = Path("main.yaml").read_text()
+        assert "name: Web Server" in content
 
 
 def test_validate_command_missing_file() -> None:
