@@ -28,11 +28,12 @@ def test_init_command() -> None:
         result = runner.invoke(cli, ["init"])
         assert result.exit_code == 0
         assert "Loom project initialized successfully" in result.output
-        # Verify main.yaml and tasks directory are created
+        # Verify project directory, main.yaml and tasks directory are created
         from pathlib import Path
-        assert Path("main.yaml").exists()
-        assert Path("tasks").exists()
-        assert Path("tasks").is_dir()
+        assert Path("my_project").exists()
+        assert Path("my_project/main.yaml").exists()
+        assert Path("my_project/tasks").exists()
+        assert Path("my_project/tasks").is_dir()
 
 
 def test_init_command_with_name() -> None:
@@ -42,9 +43,11 @@ def test_init_command_with_name() -> None:
         result = runner.invoke(cli, ["init", "Web Server"])
         assert result.exit_code == 0
         assert "Loom project initialized successfully" in result.output
-        # Verify main.yaml contains the custom name
+        # Verify project directory and main.yaml contains the custom name
         from pathlib import Path
-        content = Path("main.yaml").read_text()
+        assert Path("web_server").exists()
+        assert Path("web_server/main.yaml").exists()
+        content = Path("web_server/main.yaml").read_text()
         assert "name: Web Server" in content
 
 

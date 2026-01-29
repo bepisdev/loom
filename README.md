@@ -19,14 +19,26 @@ my-project/
 ### Initialize a New Project
 
 ```bash
-# Create a new project in the current directory
+# Create a new project directory with default name
 loom init
 
-# Create a project with a custom name
+# Create a project directory named "webserver"
+loom init webserver
+
+# Create a project with a multi-word name (creates "web_server" directory)
 loom init "Web Server"
 
-# Create a project in a specific directory
-loom init "Database Setup" --directory /path/to/project
+# Create a project in a specific parent directory
+loom init "Database Setup" --directory /projects
+# Creates: /projects/database_setup/main.yaml
+```
+
+This will create a directory structure like:
+```
+webserver/
+├── main.yaml
+└── tasks/
+    └── webserver_task.yaml
 ```
 
 ### Validate a Blueprint

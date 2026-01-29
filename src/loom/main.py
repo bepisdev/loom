@@ -121,46 +121,53 @@ def validate(blueprint: str, project_root: str) -> None:
 
 
 @cli.command()
-@click.argument("name", required=False, default="My Project")
+@click.argument("name", required=False, default="my_project")
 @click.option(
     "--directory",
     "-d",
     type=click.Path(file_okay=False, dir_okay=True),
     default=".",
-    help="Directory where the project should be initialized.",
+    help="Parent directory where the project directory should be created.",
 )
 def init(name: str, directory: str) -> None:
     """
     Initialize a new loom project.
 
-    Creates a main.yaml blueprint file and tasks directory structure.
+    Creates a project directory with main.yaml blueprint and tasks directory.
 
-    NAME: Display name for the blueprint (default: "My Project").
+    NAME: Name for the project directory and blueprint (default: my_project).
     """
     from pathlib import Path
 
-    project_root = Path(directory).resolve()
+    # Sanitize the name for use as directory name
+    safe_name = name.lower().replace(" ", "_")
+    
+    # Create project directory inside the parent directory
+    parent_dir = Path(directory).resolve()
+    project_root = parent_dir / safe_name
     tasks_dir = project_root / "tasks"
 
-    # Sanitize the name for use as task filename prefix
-    safe_name = name.lower().replace(" ", "_")
+    # Display name for the blueprint (use original name with proper formatting)
+    if name == "my_project":
+        display_name = "My Project"
+    else:
+        display_name = name
+    
     task_filename = f"{safe_name}_task.yaml"
 
-    # Display name for the blueprint
-    display_name = name
-
     try:
-        # Create tasks directory
+        # Create project root and tasks directory
+        if project_root.exists():
+            click.echo(f"[!] Warning: Directory already exists at {project_root}")
+            if not click.confirm("    Continue and potentially overwrite files?"):
+                click.echo("[*] Initialization cancelled")
+                return
+        
+        project_root.mkdir(parents=True, exist_ok=True)
         tasks_dir.mkdir(parents=True, exist_ok=True)
 
         # Create the main blueprint
         blueprint_path = project_root / "main.yaml"
-        if blueprint_path.exists():
-            click.echo(f"[!] Warning: Blueprint already exists at {blueprint_path}")
-            if not click.confirm("    Overwrite?"):
-                click.echo("[*] Initialization cancelled")
-                return
-
         blueprint_path.write_text(f"""name: {display_name}
 target: localhost
 user: root
@@ -174,20 +181,7 @@ run:
 
         # Create the task
         task_path = tasks_dir / task_filename
-        if task_path.exists():
-            click.echo(f"[!] Warning: Task file already exists at {task_path}")
-            if not click.confirm("    Overwrite?"):
-                click.echo("[*] Task file not created")
-            else:
-                task_path.write_text("""steps:
-  - name: Example step for {{ vars.app_name }}
-    uses: shell
-    ensure: present
-    with:
-      cmd: echo "Hello from {{ vars.app_name }}"
-""")
-        else:
-            task_path.write_text("""steps:
+        task_path.write_text("""steps:
   - name: Example step for {{ vars.app_name }}
     uses: shell
     ensure: present
@@ -196,14 +190,15 @@ run:
 """)
 
         click.echo("[✓] Loom project initialized successfully!")
-        click.echo(f"    Project root: {project_root}")
+        click.echo(f"    Project directory: {project_root}")
         click.echo(f"    Blueprint: {blueprint_path}")
         click.echo(f"    Tasks directory: {tasks_dir}")
         click.echo(f"    Example task: {task_path}")
         click.echo("\nNext steps:")
-        click.echo("  1. Edit the blueprint in main.yaml")
-        click.echo("  2. Run: loom validate main.yaml")
-        click.echo("  3. Run: loom run main.yaml --dry-run")
+        click.echo(f"  1. cd {safe_name}")
+        click.echo("  2. Edit the blueprint in main.yaml")
+        click.echo("  3. Run: loom validate")
+        click.echo("  4. Run: loom run --dry-run")
 
     except Exception as e:
         click.echo(f"[✗] Error initializing project: {e}", err=True)
