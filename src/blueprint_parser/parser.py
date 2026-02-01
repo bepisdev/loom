@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 from jinja2 import Environment, StrictUndefined, TemplateError
@@ -25,7 +25,7 @@ class BlueprintParser:
         # StrictUndefined ensures we crash if a variable is missing (Safety Feature)
         self.jinja_env = Environment(undefined=StrictUndefined)
 
-    def parse_blueprint(self, filename: str) -> Dict[str, Any]:
+    def parse_blueprint(self, filename: str) -> dict[str, Any]:
         """
         Main entry point. Loads the blueprint, validates it, and
         recursively loads/hydrates all task files.
